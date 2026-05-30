@@ -39,6 +39,8 @@
   nav.main .wrap{max-width:1140px;margin:0 auto;padding:0 1.25rem;display:flex;flex-wrap:wrap;}
   nav.main a{color:#fff;padding:.85rem 1rem;font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
   nav.main a:hover,nav.main a.active{background:var(--htc-red-dark);}
+  nav.main .spacer{flex:1;}
+  nav.main a.ext{font-size:.82rem;opacity:.92;}
 
   /* Hero / page intro */
   .pagehead{background:linear-gradient(135deg,var(--htc-red),var(--htc-red-dark));color:#fff;}
@@ -80,7 +82,6 @@
       <a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a>
       <span class="spacer"></span>
       <a href="https://highworthtowncouncil.gov.uk/contact">Contact</a>
-      <a href="https://highworthtowncouncil.gov.uk/login/">Login</a>
     </div>
   </div>
 
@@ -96,13 +97,11 @@
 
   <nav class="main">
     <div class="wrap">
-      <a href="https://highworthtowncouncil.gov.uk/">Home</a>
-      <a href="https://highworthtowncouncil.gov.uk/about-us/">About Us</a>
-      <a href="https://highworthtowncouncil.gov.uk/meetings/">Meetings</a>
-      <a href="https://highworthtowncouncil.gov.uk/governance/">Governance</a>
-      <a href="https://highworthtowncouncil.gov.uk/whats-happening/">What's Happening?</a>
-      <a href="https://highworthtowncouncil.gov.uk/our-services/">Our Services</a>
-      <a href="#" class="active">Applications</a>
+      <a href="index.html" class="active">All Applications</a>
+      <a href="#available">Available</a>
+      <a href="#help">Help &amp; Guidance</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/" class="ext">Main Council Website &#8599;</a>
     </div>
   </nav>
 
@@ -114,7 +113,7 @@
   </section>
 
   <main>
-    <h2 class="section-title">Available Applications</h2>
+    <h2 class="section-title" id="available">Available Applications</h2>
     <div class="grid">
 
       <article class="app-card">
@@ -133,6 +132,11 @@
       </article>
 
     </div>
+
+    <section id="help" style="margin-top:3rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:1.8rem;">
+      <h2 class="section-title" style="margin-bottom:1rem;">Help &amp; Guidance</h2>
+      <p style="color:var(--muted);max-width:760px;">Each application is an online form or survey you can complete in your browser. Responses are sent directly to the Council. If you need help completing an application, or would prefer a paper copy, please call <a href="tel:+01793762377" style="color:var(--htc-red);font-weight:600;">01793 762377</a> or email <a href="mailto:admin@highworthtowncouncil.gov.uk" style="color:var(--htc-red);font-weight:600;">admin@highworthtowncouncil.gov.uk</a>.</p>
+    </section>
   </main>
 
   <footer>
