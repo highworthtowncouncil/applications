@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Applications – Highworth Town Council</title>
+<style>
+  :root{
+    --htc-red:#e60c0b;
+    --htc-red-dark:#b80908;
+    --htc-grey:#c0c1c5;
+    --ink:#222;
+    --muted:#5a5d63;
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --line:#e3e4e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+
+  /* Top utility bar */
+  .topbar{background:#2a2c30;color:#fff;font-size:.85rem;}
+  .topbar .wrap{max-width:1140px;margin:0 auto;padding:.5rem 1.25rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;}
+  .topbar a:hover{color:var(--htc-grey);}
+  .topbar .spacer{flex:1;}
+
+  /* Header */
+  header.site{background:#fff;border-bottom:4px solid var(--htc-red);}
+  header.site .wrap{max-width:1140px;margin:0 auto;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  header.site img{height:74px;width:auto;}
+  .brand-text{line-height:1.15;}
+  .brand-text .t{font-size:1.35rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);}
+  .brand-text .s{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+  header.site .spacer{flex:1;}
+
+  /* Nav */
+  nav.main{background:var(--htc-red);}
+  nav.main .wrap{max-width:1140px;margin:0 auto;padding:0 1.25rem;display:flex;flex-wrap:wrap;}
+  nav.main a{color:#fff;padding:.85rem 1rem;font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  nav.main a:hover,nav.main a.active{background:var(--htc-red-dark);}
+
+  /* Hero / page intro */
+  .pagehead{background:linear-gradient(135deg,var(--htc-red),var(--htc-red-dark));color:#fff;}
+  .pagehead .wrap{max-width:1140px;margin:0 auto;padding:2.5rem 1.25rem;}
+  .pagehead h1{font-size:2rem;text-transform:uppercase;letter-spacing:.5px;}
+  .pagehead p{margin-top:.6rem;max-width:680px;opacity:.95;}
+
+  /* Main */
+  main{max-width:1140px;margin:0 auto;padding:2.5rem 1.25rem 3.5rem;}
+  .section-title{font-size:1.3rem;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);border-left:5px solid var(--htc-red);padding-left:.7rem;margin-bottom:1.5rem;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;}
+  .app-card{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease,box-shadow .15s ease;}
+  .app-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.1);}
+  .app-card .top{background:var(--htc-red);height:6px;}
+  .app-card .body{padding:1.4rem;flex:1;display:flex;flex-direction:column;}
+  .app-card .icon{width:46px;height:46px;border-radius:50%;background:#fdecec;color:var(--htc-red);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+  .app-card h3{font-size:1.1rem;margin-bottom:.5rem;color:var(--ink);}
+  .app-card p{font-size:.92rem;color:var(--muted);flex:1;}
+  .app-card .cta{margin-top:1.2rem;display:inline-block;background:var(--htc-red);color:#fff;font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.4px;padding:.6rem 1.1rem;border-radius:5px;align-self:flex-start;}
+  .app-card .cta:hover{background:var(--htc-red-dark);}
+  .badge{display:inline-block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--htc-red);background:#fdecec;padding:.2rem .55rem;border-radius:20px;margin-bottom:.8rem;align-self:flex-start;}
+
+  /* Footer */
+  footer{background:#2a2c30;color:#cfd1d6;font-size:.9rem;margin-top:2rem;}
+  footer .wrap{max-width:1140px;margin:0 auto;padding:2.2rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;}
+  footer h4{color:#fff;text-transform:uppercase;font-size:.85rem;letter-spacing:.5px;margin-bottom:.8rem;}
+  footer a:hover{color:#fff;}
+  footer ul{list-style:none;}
+  footer li{margin-bottom:.4rem;}
+  .copyright{background:#1f2125;color:#8d9097;text-align:center;font-size:.8rem;padding:.9rem 1rem;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap">
+      <a href="tel:+01793762377">01793 762377</a>
+      <a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/contact">Contact</a>
+      <a href="https://highworthtowncouncil.gov.uk/login/">Login</a>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap">
+      <a href="https://highworthtowncouncil.gov.uk"><img src="logo.png" alt="Highworth Town Council logo"></a>
+      <div class="brand-text">
+        <div class="t">Highworth Town Council</div>
+        <div class="s">Serving the Highworth Community</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main">
+    <div class="wrap">
+      <a href="https://highworthtowncouncil.gov.uk/">Home</a>
+      <a href="https://highworthtowncouncil.gov.uk/about-us/">About Us</a>
+      <a href="https://highworthtowncouncil.gov.uk/meetings/">Meetings</a>
+      <a href="https://highworthtowncouncil.gov.uk/governance/">Governance</a>
+      <a href="https://highworthtowncouncil.gov.uk/whats-happening/">What's Happening?</a>
+      <a href="https://highworthtowncouncil.gov.uk/our-services/">Our Services</a>
+      <a href="#" class="active">Applications</a>
+    </div>
+  </nav>
+
+  <section class="pagehead">
+    <div class="wrap">
+      <h1>Applications</h1>
+      <p>Browse and take part in surveys, consultations and online forms published by Highworth Town Council. Your feedback helps shape services and decisions across the town.</p>
+    </div>
+  </section>
+
+  <main>
+    <h2 class="section-title">Available Applications</h2>
+    <div class="grid">
+
+      <article class="app-card">
+        <div class="top"></div>
+        <div class="body">
+          <span class="badge">Open</span>
+          <div class="icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 13h16M4 13v4M20 13v4M6 13V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M8 17v2M16 17v2"></path>
+            </svg>
+          </div>
+          <h3>Bench Survey</h3>
+          <p>Tell us where you'd like new benches and how existing seating around Highworth could be improved.</p>
+          <a href="#" class="cta">Start Survey</a>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        <h4>Contact</h4>
+        <p>3 Gilberts Lane,<br>Highworth, Swindon SN6 7FB</p>
+        <p style="margin-top:.6rem;"><a href="tel:+01793762377">01793 762377</a></p>
+        <p><a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a></p>
+      </div>
+      <div>
+        <h4>Quick Menu</h4>
+        <ul>
+          <li><a href="https://highworthtowncouncil.gov.uk/">Home</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/about-us/">About Us</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/our-services/">Our Services</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/contact/">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Important Links</h4>
+        <ul>
+          <li><a href="https://highworthtowncouncil.gov.uk/#meeting">Next Meeting</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/#news">Latest News</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/councillors/">Councillors</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/staff/">Staff</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Opening Times</h4>
+        <p>Monday – Thursday<br>9:00am – 5:00pm</p>
+        <p style="margin-top:.4rem;">Friday<br>9:00am – 1:00pm</p>
+      </div>
+    </div>
+    <div class="copyright">Copyright © 2026 – Highworth Town Council</div>
+  </footer>
+
+</body>
+</html>
