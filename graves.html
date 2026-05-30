@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grave Finder – St Michael's Church, Highworth</title>
+<style>
+  :root{
+    --htc-red:#e60c0b;
+    --htc-red-dark:#b80908;
+    --htc-grey:#c0c1c5;
+    --ink:#222;
+    --muted:#5a5d63;
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --line:#e3e4e8;
+    --grass:#dfe9d6;
+    --grass-dark:#cdddbf;
+    --path:#e6ddc8;
+    --stone:#b9bcc2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+
+  .topbar{background:#2a2c30;color:#fff;font-size:.85rem;}
+  .topbar .wrap{max-width:1140px;margin:0 auto;padding:.5rem 1.25rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;}
+  .topbar a:hover{color:var(--htc-grey);}
+  .topbar .spacer{flex:1;}
+
+  header.site{background:#fff;border-bottom:4px solid var(--htc-red);}
+  header.site .wrap{max-width:1140px;margin:0 auto;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  header.site img{height:74px;width:auto;}
+  .brand-text .t{font-size:1.35rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);}
+  .brand-text .s{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+  nav.main{background:var(--htc-red);}
+  nav.main .wrap{max-width:1140px;margin:0 auto;padding:0 1.25rem;display:flex;flex-wrap:wrap;align-items:center;}
+  nav.main a{color:#fff;padding:.85rem 1rem;font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  nav.main a:hover,nav.main a.active{background:var(--htc-red-dark);}
+  nav.main .spacer{flex:1;}
+  nav.main a.ext{font-size:.82rem;opacity:.92;}
+
+  .pagehead{background:linear-gradient(135deg,var(--htc-red),var(--htc-red-dark));color:#fff;}
+  .pagehead .wrap{max-width:1140px;margin:0 auto;padding:2rem 1.25rem;}
+  .pagehead h1{font-size:1.9rem;text-transform:uppercase;letter-spacing:.5px;}
+  .pagehead p{margin-top:.5rem;max-width:720px;opacity:.95;}
+
+  main{max-width:1140px;margin:0 auto;padding:1.75rem 1.25rem 3.5rem;}
+
+  .finder{display:grid;grid-template-columns:330px 1fr;gap:1.25rem;}
+  @media(max-width:860px){.finder{grid-template-columns:1fr;}}
+
+  /* Sidebar */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .panel .head{background:var(--htc-red);color:#fff;padding:.8rem 1rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:.9rem;}
+  .search-wrap{padding:1rem;border-bottom:1px solid var(--line);}
+  .search-wrap input{width:100%;padding:.65rem .8rem;border:1px solid var(--line);border-radius:6px;font-size:.95rem;}
+  .search-wrap input:focus{outline:2px solid var(--htc-red);border-color:var(--htc-red);}
+  .count{font-size:.78rem;color:var(--muted);margin-top:.5rem;}
+
+  .list{max-height:430px;overflow-y:auto;}
+  .grave-item{padding:.7rem 1rem;border-bottom:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;gap:.5rem;align-items:center;}
+  .grave-item:hover{background:#fdecec;}
+  .grave-item.active{background:var(--htc-red);color:#fff;}
+  .grave-item .nm{font-weight:600;font-size:.95rem;}
+  .grave-item .meta{font-size:.78rem;color:var(--muted);}
+  .grave-item.active .meta{color:#ffd9d9;}
+  .grave-item .ref{font-size:.72rem;font-weight:700;background:#fdecec;color:var(--htc-red);padding:.15rem .5rem;border-radius:20px;white-space:nowrap;}
+  .grave-item.active .ref{background:#fff;}
+
+  /* Map */
+  .mapwrap{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;}
+  .maptools{display:flex;gap:.5rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;}
+  .maptools .legend{display:flex;gap:1rem;font-size:.78rem;color:var(--muted);flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:.35rem;}
+  .dot-key{width:12px;height:12px;border-radius:50%;display:inline-block;}
+  .maptools .spacer{flex:1;}
+  .zoombtn{border:1px solid var(--line);background:#fff;width:30px;height:30px;border-radius:5px;font-size:1.1rem;cursor:pointer;line-height:1;color:var(--ink);}
+  .zoombtn:hover{background:#fdecec;border-color:var(--htc-red);color:var(--htc-red);}
+  svg#map{width:100%;height:auto;display:block;background:var(--grass);touch-action:none;}
+  .grave-dot{fill:#7d8a6e;stroke:#5f6a52;stroke-width:.6;cursor:pointer;transition:fill .15s;}
+  .grave-dot:hover{fill:var(--htc-red);}
+  .grave-dot.active{fill:var(--htc-red);stroke:#fff;stroke-width:1.4;}
+
+  /* Detail */
+  .detail{margin-top:1.25rem;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1.25rem;display:none;}
+  .detail.show{display:block;}
+  .detail h3{color:var(--htc-red);font-size:1.25rem;margin-bottom:.2rem;}
+  .detail .sub{color:var(--muted);font-size:.9rem;margin-bottom:1rem;}
+  .detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem 1.5rem;}
+  .detail-grid div span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .detail-grid div b{font-size:.98rem;}
+  .detail .note{margin-top:1rem;font-size:.85rem;color:var(--muted);font-style:italic;}
+
+  footer{background:#2a2c30;color:#cfd1d6;font-size:.9rem;margin-top:2rem;}
+  footer .wrap{max-width:1140px;margin:0 auto;padding:2.2rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;}
+  footer h4{color:#fff;text-transform:uppercase;font-size:.85rem;letter-spacing:.5px;margin-bottom:.8rem;}
+  footer a:hover{color:#fff;}
+  footer ul{list-style:none;}
+  footer li{margin-bottom:.4rem;}
+  .copyright{background:#1f2125;color:#8d9097;text-align:center;font-size:.8rem;padding:.9rem 1rem;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap">
+      <a href="tel:+01793762377">01793 762377</a>
+      <a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/contact">Contact</a>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap">
+      <a href="https://highworthtowncouncil.gov.uk"><img src="logo.png" alt="Highworth Town Council logo"></a>
+      <div class="brand-text">
+        <div class="t">Highworth Town Council</div>
+        <div class="s">Serving the Highworth Community</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main">
+    <div class="wrap">
+      <a href="index.html">All Applications</a>
+      <a href="graves.html" class="active">Grave Finder</a>
+      <a href="#help">Help &amp; Guidance</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/" class="ext">Main Council Website &#8599;</a>
+    </div>
+  </nav>
+
+  <section class="pagehead">
+    <div class="wrap">
+      <h1>Grave Finder</h1>
+      <p>Locate a grave within the grounds of St Michael's Church, Highworth. Search by name below or select a marker on the map to find where loved ones rest.</p>
+    </div>
+  </section>
+
+  <main>
+    <div class="finder">
+
+      <div class="panel">
+        <div class="head">Search Graves</div>
+        <div class="search-wrap">
+          <input id="search" type="text" placeholder="Search by surname or first name…" autocomplete="off">
+          <div class="count" id="count"></div>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+
+      <div class="mapwrap">
+        <div class="maptools">
+          <div class="legend">
+            <span><i class="dot-key" style="background:#7d8a6e;"></i> Grave</span>
+            <span><i class="dot-key" style="background:#e60c0b;"></i> Selected</span>
+            <span><i class="dot-key" style="background:#b9bcc2;"></i> Church</span>
+          </div>
+          <span class="spacer"></span>
+          <button class="zoombtn" id="zoomIn" title="Zoom in">+</button>
+          <button class="zoombtn" id="zoomOut" title="Zoom out">&minus;</button>
+          <button class="zoombtn" id="zoomReset" title="Reset view" style="font-size:.8rem;">&#8634;</button>
+        </div>
+
+        <svg id="map" viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" aria-label="Map of St Michael's churchyard">
+          <g id="viewport">
+            <!-- ground sections -->
+            <rect x="0" y="0" width="800" height="560" fill="var(--grass)"/>
+            <rect x="40" y="40" width="340" height="200" rx="6" fill="var(--grass-dark)"/>
+            <rect x="420" y="40" width="340" height="200" rx="6" fill="var(--grass-dark)"/>
+            <rect x="40" y="320" width="340" height="200" rx="6" fill="var(--grass-dark)"/>
+            <rect x="420" y="320" width="340" height="200" rx="6" fill="var(--grass-dark)"/>
+
+            <!-- paths -->
+            <rect x="385" y="20" width="30" height="520" fill="var(--path)"/>
+            <rect x="20" y="265" width="760" height="30" fill="var(--path)"/>
+
+            <!-- section labels -->
+            <text x="60" y="65" font-size="13" fill="#7e8a72" font-weight="700">NORTH LAWN</text>
+            <text x="440" y="65" font-size="13" fill="#7e8a72" font-weight="700">EAST GARDEN</text>
+            <text x="60" y="345" font-size="13" fill="#7e8a72" font-weight="700">WEST LAWN</text>
+            <text x="440" y="345" font-size="13" fill="#7e8a72" font-weight="700">SOUTH GARDEN</text>
+
+            <!-- church building -->
+            <g>
+              <rect x="330" y="225" width="140" height="110" rx="3" fill="var(--stone)" stroke="#9a9da4" stroke-width="2"/>
+              <rect x="380" y="200" width="40" height="40" fill="var(--stone)" stroke="#9a9da4" stroke-width="2"/>
+              <rect x="392" y="170" width="16" height="34" fill="var(--stone)" stroke="#9a9da4" stroke-width="2"/>
+              <line x1="400" y1="150" x2="400" y2="172" stroke="#9a9da4" stroke-width="3"/>
+              <line x1="392" y1="158" x2="408" y2="158" stroke="#9a9da4" stroke-width="3"/>
+              <text x="400" y="290" font-size="12" fill="#52555b" font-weight="700" text-anchor="middle">ST MICHAEL'S</text>
+              <text x="400" y="306" font-size="10" fill="#6a6d73" text-anchor="middle">CHURCH</text>
+            </g>
+
+            <!-- entrance gate -->
+            <text x="400" y="552" font-size="11" fill="#7e8a72" text-anchor="middle" font-weight="700">&#9660; MAIN ENTRANCE / LYCH GATE</text>
+
+            <g id="dots"></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="detail" id="detail">
+      <h3 id="d-name"></h3>
+      <div class="sub" id="d-sub"></div>
+      <div class="detail-grid">
+        <div><span>Plot Reference</span><b id="d-ref"></b></div>
+        <div><span>Section</span><b id="d-section"></b></div>
+        <div><span>Born</span><b id="d-born"></b></div>
+        <div><span>Died</span><b id="d-died"></b></div>
+        <div><span>Age</span><b id="d-age"></b></div>
+      </div>
+      <p class="note" id="d-note"></p>
+    </div>
+
+    <section id="help" style="margin-top:2.5rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:1.6rem;">
+      <h2 style="font-size:1.2rem;text-transform:uppercase;letter-spacing:.5px;border-left:5px solid var(--htc-red);padding-left:.7rem;margin-bottom:.9rem;">Help &amp; Guidance</h2>
+      <p style="color:var(--muted);max-width:780px;">Type a name in the search box to filter the list, then click an entry to highlight its location on the map. You can also click any marker on the map directly. Use the + and &minus; buttons to zoom, and drag the map to pan. If you cannot find a grave or need assistance, please contact the Council office on <a href="tel:+01793762377" style="color:var(--htc-red);font-weight:600;">01793 762377</a> or <a href="mailto:admin@highworthtowncouncil.gov.uk" style="color:var(--htc-red);font-weight:600;">admin@highworthtowncouncil.gov.uk</a>. The records shown here are illustrative examples.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        <h4>Contact</h4>
+        <p>3 Gilberts Lane,<br>Highworth, Swindon SN6 7FB</p>
+        <p style="margin-top:.6rem;"><a href="tel:+01793762377">01793 762377</a></p>
+        <p><a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a></p>
+      </div>
+      <div>
+        <h4>Applications</h4>
+        <ul>
+          <li><a href="index.html">All Applications</a></li>
+          <li><a href="graves.html">Grave Finder</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Important Links</h4>
+        <ul>
+          <li><a href="https://highworthtowncouncil.gov.uk/cemetery">Cemetery Information</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/">Main Council Website</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Opening Times</h4>
+        <p>Monday – Thursday<br>9:00am – 5:00pm</p>
+        <p style="margin-top:.4rem;">Friday<br>9:00am – 1:00pm</p>
+      </div>
+    </div>
+    <div class="copyright">Copyright © 2026 – Highworth Town Council</div>
+  </footer>
+
+<script>
+const graves = [
+  {ref:"N-01", first:"Albert",    last:"Hancock",   born:1871, died:1943, section:"North Lawn", x:80,  y:110, note:"Beloved husband and father."},
+  {ref:"N-02", first:"Edith",     last:"Hancock",   born:1875, died:1951, section:"North Lawn", x:120, y:130, note:"Reunited with Albert."},
+  {ref:"N-03", first:"Thomas",    last:"Greenway",  born:1888, died:1916, section:"North Lawn", x:170, y:100, note:"Fell in the Great War."},
+  {ref:"N-04", first:"Mary",      last:"Stratton",  born:1902, died:1979, section:"North Lawn", x:210, y:150, note:"At peace."},
+  {ref:"N-05", first:"George",    last:"Pollard",   born:1865, died:1934, section:"North Lawn", x:260, y:115, note:"A faithful servant of the town."},
+  {ref:"N-06", first:"Florence",  last:"Pollard",   born:1869, died:1940, section:"North Lawn", x:300, y:175, note:""},
+  {ref:"N-07", first:"Walter",    last:"Bishop",    born:1910, died:1988, section:"North Lawn", x:340, y:135, note:"Forever remembered."},
+  {ref:"N-08", first:"Annie",     last:"Webb",      born:1893, died:1962, section:"North Lawn", x:150, y:200, note:""},
+
+  {ref:"E-01", first:"Charles",   last:"Maundrell", born:1850, died:1921, section:"East Garden", x:460, y:110, note:"Churchwarden of this parish."},
+  {ref:"E-02", first:"Sarah",     last:"Maundrell", born:1856, died:1929, section:"East Garden", x:500, y:140, note:""},
+  {ref:"E-03", first:"Henry",     last:"Crowdy",    born:1881, died:1957, section:"East Garden", x:560, y:105, note:"Schoolmaster, kindly remembered."},
+  {ref:"E-04", first:"Eliza",     last:"Tanner",    born:1899, died:1984, section:"East Garden", x:610, y:160, note:""},
+  {ref:"E-05", first:"Frederick", last:"Iles",      born:1877, died:1945, section:"East Garden", x:670, y:120, note:"Town blacksmith."},
+  {ref:"E-06", first:"Lily",      last:"Iles",      born:1882, died:1968, section:"East Garden", x:710, y:175, note:""},
+  {ref:"E-07", first:"Arthur",    last:"Sheppard",  born:1915, died:1992, section:"East Garden", x:480, y:200, note:"RAF veteran."},
+
+  {ref:"W-01", first:"Joseph",    last:"Wells",     born:1858, died:1927, section:"West Lawn", x:80,  y:390, note:""},
+  {ref:"W-02", first:"Hannah",    last:"Wells",     born:1862, died:1935, section:"West Lawn", x:120, y:415, note:"A devoted mother."},
+  {ref:"W-03", first:"Samuel",    last:"Coleman",   born:1890, died:1971, section:"West Lawn", x:175, y:380, note:""},
+  {ref:"W-04", first:"Rose",      last:"Coleman",   born:1895, died:1980, section:"West Lawn", x:215, y:430, note:""},
+  {ref:"W-05", first:"William",   last:"Archer",    born:1872, died:1939, section:"West Lawn", x:265, y:395, note:"Long-serving postmaster."},
+  {ref:"W-06", first:"Dorothy",   last:"Lambert",   born:1908, died:1996, section:"West Lawn", x:310, y:450, note:""},
+  {ref:"W-07", first:"Ernest",    last:"Lambert",   born:1905, died:1990, section:"West Lawn", x:345, y:405, note:""},
+  {ref:"W-08", first:"Grace",     last:"Norris",    born:1920, died:2004, section:"West Lawn", x:150, y:490, note:"Much loved grandmother."},
+
+  {ref:"S-01", first:"Reginald",  last:"Fox",       born:1869, died:1948, section:"South Garden", x:460, y:390, note:""},
+  {ref:"S-02", first:"Beatrice",  last:"Fox",       born:1874, died:1955, section:"South Garden", x:500, y:420, note:""},
+  {ref:"S-03", first:"Stanley",   last:"Drew",      born:1912, died:1986, section:"South Garden", x:560, y:385, note:"Served in the Royal Navy."},
+  {ref:"S-04", first:"Margaret",  last:"Drew",      born:1918, died:2001, section:"South Garden", x:610, y:435, note:""},
+  {ref:"S-05", first:"Harold",    last:"Pringle",   born:1883, died:1959, section:"South Garden", x:665, y:395, note:""},
+  {ref:"S-06", first:"Violet",    last:"Pringle",   born:1888, died:1973, section:"South Garden", x:710, y:445, note:"At rest."},
+  {ref:"S-07", first:"Frank",     last:"Hobbs",     born:1925, died:2010, section:"South Garden", x:480, y:480, note:"Local farmer for sixty years."},
+];
+
+const dotsG = document.getElementById('dots');
+const listEl = document.getElementById('list');
+const searchEl = document.getElementById('search');
+const countEl = document.getElementById('count');
+const detail = document.getElementById('detail');
+let selected = null;
+
+// render dots
+graves.forEach(g=>{
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',g.x); c.setAttribute('cy',g.y); c.setAttribute('r',7);
+  c.setAttribute('class','grave-dot');
+  c.dataset.ref = g.ref;
+  c.addEventListener('click',(e)=>{e.stopPropagation();select(g.ref,true);});
+  const title = document.createElementNS('http://www.w3.org/2000/svg','title');
+  title.textContent = `${g.first} ${g.last} (${g.ref})`;
+  c.appendChild(title);
+  dotsG.appendChild(c);
+  g._dot = c;
+});
+
+function renderList(filter=''){
+  const f = filter.trim().toLowerCase();
+  listEl.innerHTML='';
+  const matches = graves.filter(g=>!f || (`${g.first} ${g.last}`.toLowerCase().includes(f) || g.ref.toLowerCase().includes(f)));
+  matches.sort((a,b)=> a.last.localeCompare(b.last) || a.first.localeCompare(b.first));
+  matches.forEach(g=>{
+    const div = document.createElement('div');
+    div.className='grave-item'+(selected===g.ref?' active':'');
+    div.dataset.ref=g.ref;
+    div.innerHTML = `<div><div class="nm">${g.last}, ${g.first}</div><div class="meta">${g.born}&ndash;${g.died} &middot; ${g.section}</div></div><div class="ref">${g.ref}</div>`;
+    div.addEventListener('click',()=>select(g.ref,true));
+    listEl.appendChild(div);
+  });
+  countEl.textContent = `${matches.length} of ${graves.length} graves shown`;
+}
+
+function select(ref,scrollMap){
+  selected = ref;
+  const g = graves.find(x=>x.ref===ref);
+  graves.forEach(x=>x._dot.classList.toggle('active', x.ref===ref));
+  [...listEl.children].forEach(c=>c.classList.toggle('active', c.dataset.ref===ref));
+  // detail panel
+  document.getElementById('d-name').textContent = `${g.first} ${g.last}`;
+  document.getElementById('d-sub').textContent = `Plot ${g.ref} · ${g.section}`;
+  document.getElementById('d-ref').textContent = g.ref;
+  document.getElementById('d-section').textContent = g.section;
+  document.getElementById('d-born').textContent = g.born;
+  document.getElementById('d-died').textContent = g.died;
+  document.getElementById('d-age').textContent = (g.died - g.born) + ' years';
+  document.getElementById('d-note').textContent = g.note || '';
+  detail.classList.add('show');
+  // ensure visible in list
+  const active = listEl.querySelector('.grave-item.active');
+  if(active) active.scrollIntoView({block:'nearest'});
+  if(scrollMap && window.innerWidth<860){ detail.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
+
+searchEl.addEventListener('input',e=>renderList(e.target.value));
+renderList();
+
+/* ---- pan & zoom ---- */
+const svg = document.getElementById('map');
+let view = {x:0,y:0,w:800,h:560};
+function apply(){ svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`); }
+function zoom(factor){
+  const cx = view.x+view.w/2, cy=view.y+view.h/2;
+  view.w = Math.min(800, Math.max(200, view.w*factor));
+  view.h = view.w*0.7;
+  view.x = cx-view.w/2; view.y=cy-view.h/2;
+  clamp(); apply();
+}
+function clamp(){
+  view.x = Math.max(0, Math.min(view.x, 800-view.w));
+  view.y = Math.max(0, Math.min(view.y, 560-view.h));
+}
+document.getElementById('zoomIn').onclick=()=>zoom(0.7);
+document.getElementById('zoomOut').onclick=()=>zoom(1/0.7);
+document.getElementById('zoomReset').onclick=()=>{view={x:0,y:0,w:800,h:560};apply();};
+
+let dragging=false,sx,sy;
+svg.addEventListener('pointerdown',e=>{dragging=true;sx=e.clientX;sy=e.clientY;svg.setPointerCapture(e.pointerId);});
+svg.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  const scale = view.w/svg.clientWidth;
+  view.x -= (e.clientX-sx)*scale; view.y -= (e.clientY-sy)*scale;
+  sx=e.clientX; sy=e.clientY; clamp(); apply();
+});
+svg.addEventListener('pointerup',()=>dragging=false);
+svg.addEventListener('pointerleave',()=>dragging=false);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?0.85:1/0.85);},{passive:false});
+</script>
+</body>
+</html>

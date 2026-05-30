@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bench Suggestion Map – Highworth Town Council</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --htc-red:#e60c0b;
+    --htc-red-dark:#b80908;
+    --htc-grey:#c0c1c5;
+    --ink:#222;
+    --muted:#5a5d63;
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --line:#e3e4e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+
+  .topbar{background:#2a2c30;color:#fff;font-size:.85rem;}
+  .topbar .wrap{max-width:1140px;margin:0 auto;padding:.5rem 1.25rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;}
+  .topbar a:hover{color:var(--htc-grey);}
+  .topbar .spacer{flex:1;}
+
+  header.site{background:#fff;border-bottom:4px solid var(--htc-red);}
+  header.site .wrap{max-width:1140px;margin:0 auto;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  header.site img{height:74px;width:auto;}
+  .brand-text .t{font-size:1.35rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);}
+  .brand-text .s{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+  nav.main{background:var(--htc-red);}
+  nav.main .wrap{max-width:1140px;margin:0 auto;padding:0 1.25rem;display:flex;flex-wrap:wrap;align-items:center;}
+  nav.main a{color:#fff;padding:.85rem 1rem;font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  nav.main a:hover,nav.main a.active{background:var(--htc-red-dark);}
+  nav.main .spacer{flex:1;}
+  nav.main a.ext{font-size:.82rem;opacity:.92;}
+
+  .pagehead{background:linear-gradient(135deg,var(--htc-red),var(--htc-red-dark));color:#fff;}
+  .pagehead .wrap{max-width:1140px;margin:0 auto;padding:2rem 1.25rem;}
+  .pagehead h1{font-size:1.9rem;text-transform:uppercase;letter-spacing:.5px;}
+  .pagehead p{margin-top:.5rem;max-width:740px;opacity:.95;}
+
+  main{max-width:1140px;margin:0 auto;padding:1.75rem 1.25rem 3.5rem;}
+
+  .steps{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .step{flex:1;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem 1.1rem;display:flex;gap:.8rem;align-items:flex-start;}
+  .step .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--htc-red);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+  .step .t{font-size:.9rem;color:var(--muted);}
+  .step .t b{color:var(--ink);display:block;font-size:.95rem;}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:1.25rem;align-items:start;}
+  @media(max-width:880px){.layout{grid-template-columns:1fr;}}
+
+  .mapcard,.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .panel .head{background:var(--htc-red);color:#fff;padding:.8rem 1rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:.9rem;}
+  #map{width:100%;height:520px;}
+  @media(max-width:880px){#map{height:380px;}}
+
+  .maphint{padding:.6rem 1rem;font-size:.82rem;color:var(--muted);border-bottom:1px solid var(--line);background:#fafafb;}
+  .maphint b{color:var(--htc-red);}
+
+  form{padding:1.1rem;}
+  .field{margin-bottom:.9rem;}
+  label{display:block;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-bottom:.3rem;}
+  input,textarea,select{width:100%;padding:.6rem .7rem;border:1px solid var(--line);border-radius:6px;font-size:.95rem;font-family:inherit;}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--htc-red);border-color:var(--htc-red);}
+  textarea{resize:vertical;min-height:80px;}
+  .coords{font-size:.8rem;color:var(--muted);background:#f4f5f7;border:1px dashed var(--line);border-radius:6px;padding:.55rem .7rem;}
+  .coords.set{border-style:solid;border-color:var(--htc-red);color:var(--ink);}
+  .submit-btn{width:100%;background:var(--htc-red);color:#fff;border:none;padding:.8rem;border-radius:6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:.9rem;cursor:pointer;}
+  .submit-btn:hover{background:var(--htc-red-dark);}
+  .submit-btn:disabled{background:var(--htc-grey);cursor:not-allowed;}
+  .msg{display:none;margin:0 1.1rem 1.1rem;padding:.8rem;border-radius:6px;background:#e7f6e7;border:1px solid #b9e0b9;color:#256a25;font-size:.9rem;}
+  .msg.show{display:block;}
+
+  .suggestions{margin-top:1.25rem;}
+  .sug-head{font-size:1.2rem;text-transform:uppercase;letter-spacing:.5px;border-left:5px solid var(--htc-red);padding-left:.7rem;margin-bottom:1rem;}
+  .sug-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+  .sug{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem;cursor:pointer;transition:box-shadow .15s,transform .15s;}
+  .sug:hover{box-shadow:0 6px 16px rgba(0,0,0,.08);transform:translateY(-2px);}
+  .sug .loc{font-weight:700;margin-bottom:.25rem;}
+  .sug .why{font-size:.88rem;color:var(--muted);margin-bottom:.5rem;}
+  .sug .by{font-size:.75rem;color:#8d9097;text-transform:uppercase;letter-spacing:.4px;}
+  .sug .tag{display:inline-block;font-size:.7rem;font-weight:700;color:var(--htc-red);background:#fdecec;padding:.15rem .5rem;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+  .empty{color:var(--muted);font-style:italic;font-size:.9rem;}
+
+  footer{background:#2a2c30;color:#cfd1d6;font-size:.9rem;margin-top:2rem;}
+  footer .wrap{max-width:1140px;margin:0 auto;padding:2.2rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;}
+  footer h4{color:#fff;text-transform:uppercase;font-size:.85rem;letter-spacing:.5px;margin-bottom:.8rem;}
+  footer a:hover{color:#fff;}
+  footer ul{list-style:none;}
+  footer li{margin-bottom:.4rem;}
+  .copyright{background:#1f2125;color:#8d9097;text-align:center;font-size:.8rem;padding:.9rem 1rem;}
+
+  .leaflet-popup-content b{color:var(--htc-red);}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap">
+      <a href="tel:+01793762377">01793 762377</a>
+      <a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/contact">Contact</a>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap">
+      <a href="https://highworthtowncouncil.gov.uk"><img src="logo.png" alt="Highworth Town Council logo"></a>
+      <div class="brand-text">
+        <div class="t">Highworth Town Council</div>
+        <div class="s">Serving the Highworth Community</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main">
+    <div class="wrap">
+      <a href="index.html">All Applications</a>
+      <a href="benches.html" class="active">Bench Suggestions</a>
+      <a href="#suggestions">Submitted Ideas</a>
+      <span class="spacer"></span>
+      <a href="https://highworthtowncouncil.gov.uk/" class="ext">Main Council Website &#8599;</a>
+    </div>
+  </nav>
+
+  <section class="pagehead">
+    <div class="wrap">
+      <h1>Bench Suggestion Map</h1>
+      <p>Where would a new bench make a difference in Highworth? Drop a pin on the map to suggest a location, tell us why it would help, and submit your idea to the Council.</p>
+    </div>
+  </section>
+
+  <main>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t"><b>Find the spot</b>Pan and zoom the map of Highworth to your suggested location.</div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Drop a pin</b>Click the map to place your bench marker. Click again to move it.</div></div>
+      <div class="step"><div class="n">3</div><div class="t"><b>Tell us why</b>Complete the short form and submit your suggestion.</div></div>
+    </div>
+
+    <div class="layout">
+      <div class="mapcard">
+        <div class="maphint">Tip: <b>click anywhere on the map</b> to drop or move your bench pin. Existing community suggestions are shown in red.</div>
+        <div id="map"></div>
+      </div>
+
+      <div class="panel">
+        <div class="head">Suggest a Bench</div>
+        <form id="benchForm">
+          <div class="field">
+            <label>Selected location</label>
+            <div class="coords" id="coords">No pin placed yet — click the map to begin.</div>
+          </div>
+          <div class="field">
+            <label for="loc">Location description</label>
+            <input id="loc" type="text" placeholder="e.g. High Street, near the war memorial" required>
+          </div>
+          <div class="field">
+            <label for="why">Why is a bench needed here?</label>
+            <textarea id="why" placeholder="e.g. A long uphill walk with nowhere to rest for elderly residents." required></textarea>
+          </div>
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" type="text" placeholder="Full name" required>
+          </div>
+          <div class="field">
+            <label for="email">Your email</label>
+            <input id="email" type="email" placeholder="you@example.com" required>
+          </div>
+          <button class="submit-btn" id="submitBtn" type="submit" disabled>Submit Suggestion</button>
+        </form>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+      <h2 class="sug-head">Submitted Ideas</h2>
+      <div class="sug-list" id="sugList"></div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        <h4>Contact</h4>
+        <p>3 Gilberts Lane,<br>Highworth, Swindon SN6 7FB</p>
+        <p style="margin-top:.6rem;"><a href="tel:+01793762377">01793 762377</a></p>
+        <p><a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a></p>
+      </div>
+      <div>
+        <h4>Applications</h4>
+        <ul>
+          <li><a href="index.html">All Applications</a></li>
+          <li><a href="benches.html">Bench Suggestions</a></li>
+          <li><a href="graves.html">Grave Finder</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Important Links</h4>
+        <ul>
+          <li><a href="https://highworthtowncouncil.gov.uk/our-services/">Our Services</a></li>
+          <li><a href="https://highworthtowncouncil.gov.uk/">Main Council Website</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Opening Times</h4>
+        <p>Monday – Thursday<br>9:00am – 5:00pm</p>
+        <p style="margin-top:.4rem;">Friday<br>9:00am – 1:00pm</p>
+      </div>
+    </div>
+    <div class="copyright">Copyright © 2026 – Highworth Town Council</div>
+  </footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const HIGHWORTH = [51.6306, -1.7106];
+
+const map = L.map('map').setView(HIGHWORTH, 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// red pin icon for community suggestions
+function redIcon(){
+  return L.divIcon({
+    className:'',
+    html:'<div style="width:22px;height:22px;background:#e60c0b;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 5px rgba(0,0,0,.4);"></div>',
+    iconSize:[22,22], iconAnchor:[11,22], popupAnchor:[0,-20]
+  });
+}
+function blueIcon(){
+  return L.divIcon({
+    className:'',
+    html:'<div style="width:24px;height:24px;background:#1d6fb8;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.45);"></div>',
+    iconSize:[24,24], iconAnchor:[12,24], popupAnchor:[0,-22]
+  });
+}
+
+// example community suggestions
+let suggestions = [
+  {loc:"High Street, near the war memorial", why:"A busy spot with nowhere to sit while waiting for the bus.", name:"J. Carter", lat:51.6312, lng:-1.7099},
+  {loc:"Recreation Ground entrance", why:"Parents need somewhere to rest while watching children play.", name:"S. Allen", lat:51.6288, lng:-1.7135},
+  {loc:"Church path, St Michael's", why:"The uphill walk to the church is hard for older visitors.", name:"M. Reid", lat:51.6299, lng:-1.7078},
+  {loc:"Westrop, by the shops", why:"Would help shoppers with heavy bags take a break.", name:"D. Pearce", lat:51.6334, lng:-1.7152},
+];
+
+const sugList = document.getElementById('sugList');
+const sugMarkers = {};
+
+function addSugMarker(s,i){
+  const m = L.marker([s.lat,s.lng],{icon:redIcon()}).addTo(map)
+    .bindPopup(`<b>${escapeHtml(s.loc)}</b><br>${escapeHtml(s.why)}<br><small>Suggested by ${escapeHtml(s.name)}</small>`);
+  sugMarkers[i]=m;
+}
+function renderSuggestions(){
+  sugList.innerHTML='';
+  if(!suggestions.length){ sugList.innerHTML='<p class="empty">No suggestions yet — be the first to add one!</p>'; return; }
+  suggestions.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='sug';
+    div.innerHTML=`<span class="tag">Bench</span><div class="loc" style="margin-top:.5rem;">${escapeHtml(s.loc)}</div><div class="why">${escapeHtml(s.why)}</div><div class="by">Suggested by ${escapeHtml(s.name)}</div>`;
+    div.addEventListener('click',()=>{
+      map.setView([s.lat,s.lng],17,{animate:true});
+      if(sugMarkers[i]) sugMarkers[i].openPopup();
+      document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
+    });
+    sugList.appendChild(div);
+  });
+}
+suggestions.forEach(addSugMarker);
+renderSuggestions();
+
+// ---- pin dropping ----
+let pendingMarker=null, pending=null;
+const coordsEl=document.getElementById('coords');
+const submitBtn=document.getElementById('submitBtn');
+
+map.on('click',e=>{
+  pending=e.latlng;
+  if(pendingMarker){ pendingMarker.setLatLng(e.latlng); }
+  else{
+    pendingMarker=L.marker(e.latlng,{icon:blueIcon(),draggable:true}).addTo(map).bindPopup('Your suggested bench location').openPopup();
+    pendingMarker.on('dragend',ev=>{ pending=ev.target.getLatLng(); updateCoords(); });
+  }
+  updateCoords();
+});
+function updateCoords(){
+  coordsEl.textContent=`Lat ${pending.lat.toFixed(5)}, Lng ${pending.lng.toFixed(5)}`;
+  coordsEl.classList.add('set');
+  submitBtn.disabled=false;
+}
+
+// ---- submit ----
+document.getElementById('benchForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!pending) return;
+  const s={
+    loc:document.getElementById('loc').value.trim(),
+    why:document.getElementById('why').value.trim(),
+    name:document.getElementById('name').value.trim(),
+    email:document.getElementById('email').value.trim(),
+    lat:pending.lat, lng:pending.lng
+  };
+  suggestions.push(s);
+  addSugMarker(s,suggestions.length-1);
+  renderSuggestions();
+  // convert pending pin to confirmed
+  if(pendingMarker){ map.removeLayer(pendingMarker); pendingMarker=null; }
+  pending=null;
+  e.target.reset();
+  coordsEl.textContent='No pin placed yet — click the map to begin.';
+  coordsEl.classList.remove('set');
+  submitBtn.disabled=true;
+  const msg=document.getElementById('msg');
+  msg.textContent='Thank you! Your bench suggestion has been submitted to Highworth Town Council.';
+  msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'),6000);
+  document.getElementById('suggestions').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+function escapeHtml(str){return String(str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script>
+</body>
+</html>
