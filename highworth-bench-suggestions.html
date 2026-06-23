@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Suggest a Bench Location — Highworth Town Council</title>
+<meta name="description" content="Tell Highworth Town Council where you would like to see a new bench in the town." />
+
+<!-- Leaflet (map library) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<!-- Council typeface -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ===================================================================
+   HIGHWORTH TOWN COUNCIL — "Suggest a Bench" web app
+   Brand palette taken from highworthtowncouncil.gov.uk
+   =================================================================== */
+:root{
+  --htc-green:#288407;        /* primary brand green */
+  --htc-green-dark:#1f6905;   /* hover / accents      */
+  --htc-green-tint:#eef5ea;   /* light background     */
+  --htc-blue:#306597;         /* secondary brand blue */
+  --htc-charcoal:#4b4f58;     /* body text            */
+  --htc-grey:#808285;
+  --htc-line:#e2e5e1;
+  --htc-white:#ffffff;
+  --radius:10px;
+  --shadow:0 2px 10px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 28px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  color:var(--htc-charcoal);
+  background:var(--htc-white);
+  line-height:1.5;
+}
+h1,h2,h3{font-weight:700;line-height:1.2;margin:0 0 .4em;}
+a{color:var(--htc-blue);}
+img{max-width:100%;}
+
+/* ---- top accent + header ---- */
+.topbar{height:6px;background:var(--htc-green);}
+header.site{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 22px;border-bottom:1px solid var(--htc-line);
+  background:var(--htc-white);
+}
+header.site .logo{height:58px;width:auto;display:block;}
+header.site .logo-fallback{
+  font-weight:800;color:var(--htc-green);font-size:1.05rem;line-height:1.1;display:none;
+}
+header.site .titles h1{font-size:1.25rem;margin:0;color:var(--htc-charcoal);}
+header.site .titles p{margin:2px 0 0;color:var(--htc-grey);font-size:.85rem;font-weight:500;}
+
+/* ---- intro banner ---- */
+.intro{background:var(--htc-green-tint);border-bottom:1px solid var(--htc-line);}
+.intro .wrap{max-width:1180px;margin:0 auto;padding:18px 22px;}
+.intro h2{color:var(--htc-green-dark);font-size:1.15rem;}
+.steps{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;}
+.step{display:flex;align-items:flex-start;gap:10px;flex:1 1 240px;font-size:.92rem;}
+.step .num{
+  flex:0 0 28px;height:28px;width:28px;border-radius:50%;
+  background:var(--htc-green);color:#fff;font-weight:700;
+  display:flex;align-items:center;justify-content:center;font-size:.9rem;
+}
+
+/* ---- main layout ---- */
+.layout{max-width:1180px;margin:0 auto;padding:22px;display:flex;gap:22px;align-items:stretch;}
+.map-col{flex:1 1 60%;min-width:0;display:flex;flex-direction:column;}
+#map{flex:1;min-height:62vh;border-radius:var(--radius);border:1px solid var(--htc-line);box-shadow:var(--shadow);}
+.map-tools{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.aside{flex:1 1 36%;min-width:300px;}
+
+/* ---- panel / form ---- */
+.panel{
+  background:var(--htc-white);border:1px solid var(--htc-line);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;
+}
+.panel h2{font-size:1.1rem;color:var(--htc-green-dark);}
+.field{margin-bottom:15px;}
+.field label{display:block;font-weight:600;font-size:.9rem;margin-bottom:5px;}
+.field .hint{font-weight:400;color:var(--htc-grey);font-size:.82rem;}
+.field input[type=text],.field textarea,.field input[type=password]{
+  width:100%;padding:10px 12px;border:1px solid #c9cdc6;border-radius:8px;
+  font-family:inherit;font-size:.95rem;color:var(--htc-charcoal);background:#fff;
+}
+.field textarea{min-height:96px;resize:vertical;}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--htc-green);box-shadow:0 0 0 3px rgba(40,132,7,.15);}
+.req{color:#b3261e;}
+
+.coord-box{
+  background:var(--htc-green-tint);border:1px dashed var(--htc-green);
+  border-radius:8px;padding:12px;font-size:.9rem;margin-bottom:15px;
+}
+.coord-box.empty{background:#f6f7f5;border-color:#c9cdc6;color:var(--htc-grey);font-style:italic;}
+.coord-box strong{color:var(--htc-green-dark);}
+.coord-box .addr{margin-top:6px;font-size:.85rem;color:var(--htc-charcoal);}
+
+/* ---- buttons ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 18px;border-radius:8px;border:1px solid transparent;
+  font-family:inherit;font-weight:600;font-size:.95rem;cursor:pointer;
+  transition:background .15s,box-shadow .15s,opacity .15s;text-decoration:none;
+}
+.btn-primary{background:var(--htc-green);color:#fff;width:100%;}
+.btn-primary:hover{background:var(--htc-green-dark);}
+.btn-primary:disabled{background:#b7c8ad;cursor:not-allowed;}
+.btn-secondary{background:#fff;color:var(--htc-blue);border-color:var(--htc-blue);}
+.btn-secondary:hover{background:#eef3f8;}
+.btn-ghost{background:#fff;color:var(--htc-charcoal);border-color:#c9cdc6;}
+.btn-ghost:hover{background:#f3f4f2;}
+.btn-danger{background:#fff;color:#b3261e;border-color:#e0b4b0;}
+.btn-danger:hover{background:#fbeceb;}
+
+/* ---- success state ---- */
+.success{text-align:center;padding:10px 4px;}
+.success .tick{
+  width:62px;height:62px;border-radius:50%;background:var(--htc-green);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 14px;
+}
+.success h2{color:var(--htc-green-dark);}
+
+/* ---- map pin (brand-coloured) ---- */
+.htc-div-pin{background:none;border:none;}
+.htc-pin{
+  width:30px;height:30px;background:var(--htc-green);border:3px solid #fff;
+  border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  box-shadow:0 3px 6px rgba(0,0,0,.35);position:relative;
+}
+.htc-pin span{
+  transform:rotate(45deg);position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:700;font-size:.8rem;font-family:'Montserrat',sans-serif;
+}
+
+/* ---- footer ---- */
+footer.site{
+  background:var(--htc-charcoal);color:#e9eae8;margin-top:30px;
+  padding:22px;font-size:.86rem;
+}
+footer.site .wrap{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;}
+footer.site a{color:#cfe6c4;}
+footer.site .muted{color:#a9adb2;font-size:.8rem;}
+
+/* ---- toast ---- */
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:var(--htc-charcoal);color:#fff;padding:12px 18px;border-radius:8px;
+  box-shadow:var(--shadow-lg);font-size:.9rem;z-index:9999;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;max-width:90vw;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+.toast.error{background:#b3261e;}
+
+/* ===================== ADMIN ===================== */
+#adminView{display:none;}
+.admin-gate{
+  min-height:70vh;display:flex;align-items:center;justify-content:center;padding:22px;
+}
+.admin-gate .card{
+  background:#fff;border:1px solid var(--htc-line);border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);padding:30px;max-width:380px;width:100%;text-align:center;
+}
+.admin-gate .lock{font-size:2.2rem;}
+.admin-gate h2{color:var(--htc-green-dark);margin-top:8px;}
+.admin-gate .err{color:#b3261e;font-size:.85rem;min-height:1.2em;margin-top:8px;}
+
+.admin-bar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:14px 22px;background:var(--htc-charcoal);color:#fff;
+}
+.admin-bar .logo{height:40px;}
+.admin-bar h2{margin:0;font-size:1.05rem;color:#fff;}
+.admin-bar .spacer{flex:1;}
+.badge{font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:20px;letter-spacing:.02em;}
+.badge.local{background:#5a6b53;color:#eaf3e4;}
+.badge.central{background:var(--htc-green);color:#fff;}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px 0;}
+.admin-grid{display:flex;gap:18px;padding:16px 22px 26px;flex-wrap:wrap;align-items:flex-start;}
+#adminMap{flex:1 1 420px;min-height:440px;height:62vh;border-radius:var(--radius);border:1px solid var(--htc-line);}
+.table-wrap{flex:1 1 480px;max-height:62vh;overflow:auto;border:1px solid var(--htc-line);border-radius:var(--radius);}
+table.subs{border-collapse:collapse;width:100%;font-size:.84rem;}
+table.subs th,table.subs td{padding:9px 10px;border-bottom:1px solid var(--htc-line);text-align:left;vertical-align:top;}
+table.subs thead th{
+  position:sticky;top:0;background:var(--htc-green-tint);color:var(--htc-green-dark);
+  cursor:pointer;white-space:nowrap;z-index:1;
+}
+table.subs thead th.nosort{cursor:default;}
+table.subs tbody tr:hover{background:#f6faf3;cursor:pointer;}
+table.subs tbody tr.active{background:#e4f1db;}
+table.subs td.reason{min-width:200px;white-space:pre-wrap;}
+.warn-banner{background:#fff4e5;border:1px solid #f0c98a;color:#7a5200;padding:10px 14px;margin:0 22px;border-radius:8px;font-size:.86rem;}
+.empty-note{padding:40px 22px;color:var(--htc-grey);text-align:center;}
+.count-pill{background:#fff;color:var(--htc-charcoal);font-weight:700;padding:5px 12px;border-radius:20px;font-size:.85rem;}
+
+/* ---- responsive ---- */
+@media (max-width:880px){
+  .layout{flex-direction:column;}
+  #map{min-height:52vh;}
+  .admin-grid{flex-direction:column;}
+  #adminMap,.table-wrap{flex:1 1 auto;width:100%;}
+}
+.visually-hidden{position:absolute;left:-9999px;}
+</style>
+</head>
+<body>
+
+<!-- ============================ PUBLIC VIEW ============================ -->
+<div id="publicView">
+  <div class="topbar"></div>
+
+  <header class="site">
+    <a href="https://highworthtowncouncil.gov.uk" target="_blank" rel="noopener">
+      <img class="logo" src="https://highworthtowncouncil.gov.uk/wp-content/uploads/2020/08/logo.png"
+           alt="Highworth Town Council"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+      <span class="logo-fallback">Highworth<br>Town Council</span>
+    </a>
+    <div class="titles">
+      <h1>Suggest a Bench Location</h1>
+      <p>Help shape Highworth — tell us where a new bench would be welcome</p>
+    </div>
+  </header>
+
+  <section class="intro">
+    <div class="wrap">
+      <h2>Where would you like to see a new bench?</h2>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><strong>Find the spot</strong><br>Move the map and click the exact place you have in mind.</div></div>
+        <div class="step"><div class="num">2</div><div><strong>Tell us why</strong><br>Explain what makes it a good location for a bench.</div></div>
+        <div class="step"><div class="num">3</div><div><strong>Send it in</strong><br>Submit your suggestion to the Council. It only takes a moment.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <div class="map-col">
+      <div class="map-tools">
+        <button class="btn btn-secondary" id="locateBtn" type="button">📍 Use my current location</button>
+        <button class="btn btn-ghost" id="clearPinBtn" type="button" disabled>Clear pin</button>
+      </div>
+      <div id="map" role="application" aria-label="Map of Highworth. Click to place a pin where you would like a bench."></div>
+    </div>
+
+    <aside class="aside">
+      <div class="panel" id="formPanel">
+        <h2>Your bench suggestion</h2>
+
+        <div class="coord-box empty" id="coordBox">
+          Click on the map to choose the exact spot for your suggested bench.
+        </div>
+
+        <form id="benchForm" autocomplete="off" novalidate>
+          <!-- honeypot (anti-spam) - hidden from people -->
+          <input type="text" id="website" name="website" class="visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+          <div class="field">
+            <label for="description">Nearest landmark / description <span class="hint">(optional)</span></label>
+            <input type="text" id="description" maxlength="160" placeholder="e.g. by the bus stop opposite the church" />
+          </div>
+
+          <div class="field">
+            <label for="reason">Why would this be a good place for a bench? <span class="req">*</span></label>
+            <textarea id="reason" maxlength="600" placeholder="e.g. It's a steep walk up the hill and there is nowhere to rest before the shops."></textarea>
+            <span class="hint" id="reasonCount">0 / 600</span>
+          </div>
+
+          <button class="btn btn-primary" id="submitBtn" type="submit" disabled>Submit suggestion</button>
+          <p class="hint" style="margin-top:10px;text-align:center;">Your suggestion is anonymous — we don't ask for any personal details.</p>
+        </form>
+      </div>
+
+      <!-- success state (hidden until submit) -->
+      <div class="panel success" id="successPanel" style="display:none;">
+        <div class="tick">✓</div>
+        <h2>Thank you!</h2>
+        <p>Your bench suggestion has been sent to Highworth Town Council. We really appreciate you taking the time.</p>
+        <button class="btn btn-primary" id="againBtn" type="button" style="margin-top:8px;">Suggest another location</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div>
+        <strong>Highworth Town Council</strong><br>
+        3 Gilberts Lane, Highworth, Swindon SN6 7FB<br>
+        <a href="tel:+441793762377">01793 762377</a> ·
+        <a href="mailto:admin@highworthtowncouncil.gov.uk">admin@highworthtowncouncil.gov.uk</a>
+      </div>
+      <div class="muted">
+        Map data © OpenStreetMap contributors.<br>
+        This is a community feedback tool for suggesting bench locations.
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================ ADMIN VIEW ============================ -->
+<div id="adminView">
+  <!-- password gate -->
+  <div class="admin-gate" id="adminGate">
+    <div class="card">
+      <div class="lock">🔒</div>
+      <h2>Council Staff Login</h2>
+      <p class="hint">This area is for Highworth Town Council staff only.</p>
+      <form id="gateForm">
+        <div class="field" style="text-align:left;margin-top:14px;">
+          <label for="adminPwd">Password</label>
+          <input type="password" id="adminPwd" autocomplete="current-password" />
+        </div>
+        <button class="btn btn-primary" type="submit">Unlock</button>
+        <div class="err" id="adminErr"></div>
+      </form>
+      <p style="margin-top:16px;"><a href="#">← Back to public page</a></p>
+    </div>
+  </div>
+
+  <!-- dashboard -->
+  <div id="adminDash" style="display:none;">
+    <div class="admin-bar">
+      <img class="logo" src="https://highworthtowncouncil.gov.uk/wp-content/uploads/2020/08/logo.png"
+           alt="Highworth Town Council" onerror="this.style.display='none'" />
+      <h2>Bench Suggestions — Admin</h2>
+      <span class="badge" id="modeBadge">…</span>
+      <div class="spacer"></div>
+      <span class="count-pill" id="countPill">0 suggestions</span>
+      <button class="btn btn-ghost" id="lockBtn" type="button">Lock</button>
+    </div>
+
+    <div class="admin-actions">
+      <button class="btn btn-secondary" id="refreshBtn" type="button">↻ Refresh</button>
+      <button class="btn btn-primary" id="exportCsvBtn" type="button" style="width:auto;">⬇ Export CSV</button>
+      <button class="btn btn-primary" id="exportXlsxBtn" type="button" style="width:auto;">⬇ Export Excel</button>
+      <button class="btn btn-danger" id="clearBtn" type="button">Delete all (this device)</button>
+    </div>
+
+    <div class="warn-banner" id="warnBanner" style="display:none;"></div>
+
+    <div class="admin-grid">
+      <div id="adminMap"></div>
+      <div class="table-wrap">
+        <table class="subs" id="subsTable">
+          <thead>
+            <tr>
+              <th class="nosort">#</th>
+              <th data-sort="ts">Date / time ▾</th>
+              <th class="nosort">Location</th>
+              <th class="nosort">Reason</th>
+              <th class="nosort"></th>
+            </tr>
+          </thead>
+          <tbody id="subsBody"></tbody>
+        </table>
+        <div class="empty-note" id="emptyNote" style="display:none;">No bench suggestions yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+/* ===================================================================
+   CONFIGURATION  —  the Council can safely edit the values below
+   =================================================================== */
+const CONFIG = {
+
+  /* HOW SUBMISSIONS ARE STORED
+     -------------------------------------------------------------------
+     Leave endpointUrl EMPTY ("") to run in OFFLINE / KIOSK mode:
+        every suggestion is saved in THIS browser only. Ideal for a
+        shared tablet or PC at the Library or Council Offices.
+
+     To collect suggestions CENTRALLY from residents' own phones,
+     follow the steps in "Google-Sheet-setup-guide.md", then paste your
+     Google Apps Script Web App URL between the quotes below.            */
+  endpointUrl: "",
+
+  /* Map starting position (Highworth town centre) and limits */
+  townCentre:  [51.6306, -1.7106],
+  defaultZoom: 16,
+  minZoom:     13,
+  maxBounds:   [[51.610, -1.745], [51.650, -1.685]],
+
+  /* Admin password — stored as a SHA-256 hash, not plain text.
+     Current password: H1ghW0rthT0wnCounc1l
+     To change it, generate a new SHA-256 hash and paste it here.       */
+  adminPasswordHash: "8645e864f7c82e8f8271746cbbe9ad1a5cce3e347e22d779c2b8b0d661761097"
+};
+
+/* ===================================================================
+   Small helpers
+   =================================================================== */
+const $ = (sel, root=document) => root.querySelector(sel);
+const esc = (s) => String(s==null?'':s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+function toast(msg, isError){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.className = 'toast'; }, 3200);
+}
+
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* JSONP loader (used to read the Google Sheet across origins) */
+function jsonp(url){
+  return new Promise((resolve, reject)=>{
+    const cb = '__htc_cb_' + Date.now() + Math.floor(Math.random()*1e5);
+    const s  = document.createElement('script');
+    const t  = setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 12000);
+    function cleanup(){ delete window[cb]; s.remove(); clearTimeout(t); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    s.onerror  = ()=>{ cleanup(); reject(new Error('network')); };
+    s.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
+    document.body.appendChild(s);
+  });
+}
+
+/* ===================================================================
+   Storage layer  (local browser  OR  central Google Sheet)
+   =================================================================== */
+const Store = {
+  KEY: 'htc_bench_suggestions_v1',
+  central(){ return !!(CONFIG.endpointUrl && CONFIG.endpointUrl.trim()); },
+
+  _readLocal(){
+    try{ return JSON.parse(localStorage.getItem(this.KEY) || '[]'); }
+    catch(e){ return []; }
+  },
+  _writeLocal(arr){ localStorage.setItem(this.KEY, JSON.stringify(arr)); },
+
+  async add(rec){
+    if(this.central()){
+      // POST to the Google Sheet (fire-and-forget; opaque response)
+      await fetch(CONFIG.endpointUrl, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(rec)
+      });
+      // keep a local safety copy on this device too
+      const arr = this._readLocal(); arr.push(rec); this._writeLocal(arr);
+      return 'central';
+    }
+    const arr = this._readLocal(); arr.push(rec); this._writeLocal(arr);
+    return 'local';
+  },
+
+  /* returns {records:[...], source:'local'|'central'|'central-fallback'} */
+  async all(){
+    if(this.central()){
+      try{
+        const url = CONFIG.endpointUrl + (CONFIG.endpointUrl.includes('?')?'&':'?') + 'action=list';
+        const data = await jsonp(url);
+        return { records: Array.isArray(data)?data:[], source:'central' };
+      }catch(e){
+        return { records: this._readLocal(), source:'central-fallback' };
+      }
+    }
+    return { records: this._readLocal(), source:'local' };
+  },
+
+  removeLocal(id){
+    this._writeLocal(this._readLocal().filter(r=>r.id!==id));
+  },
+  clearLocal(){ this._writeLocal([]); }
+};
+
+/* ===================================================================
+   PUBLIC VIEW  —  map + suggestion form
+   =================================================================== */
+let pubMap, pin, selected = null, geocodeTimer = null;
+
+function initPublicMap(){
+  if(pubMap) return;
+  pubMap = L.map('map', {
+    center: CONFIG.townCentre,
+    zoom: CONFIG.defaultZoom,
+    minZoom: CONFIG.minZoom,
+    maxBounds: CONFIG.maxBounds,
+    maxBoundsViscosity: 0.9
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(pubMap);
+
+  pubMap.on('click', (e)=> placePin(e.latlng.lat, e.latlng.lng));
+  setTimeout(()=>pubMap.invalidateSize(), 200);
+}
+
+function pinIcon(label){
+  return L.divIcon({
+    className:'htc-div-pin',
+    html:`<div class="htc-pin"><span>${label||''}</span></div>`,
+    iconSize:[30,42], iconAnchor:[15,38], popupAnchor:[0,-36]
+  });
+}
+
+function placePin(lat, lng){
+  const ll = L.latLng(lat, lng);
+  if(!L.latLngBounds(CONFIG.maxBounds).contains(ll)){
+    toast('Please choose a spot inside Highworth.', true);
+    return;
+  }
+  if(!pin){
+    pin = L.marker(ll, {draggable:true, icon:pinIcon('')}).addTo(pubMap);
+    pin.on('dragend', ()=>{
+      const p = pin.getLatLng();
+      selected = {lat:p.lat, lng:p.lng};
+      updateCoordBox(); reverseGeocode(p.lat, p.lng);
+    });
+  } else {
+    pin.setLatLng(ll);
+  }
+  selected = {lat:lat, lng:lng};
+  $('#clearPinBtn').disabled = false;
+  validateForm();
+  updateCoordBox();
+  reverseGeocode(lat, lng);
+}
+
+function clearPin(){
+  if(pin){ pubMap.removeLayer(pin); pin = null; }
+  selected = null;
+  $('#clearPinBtn').disabled = true;
+  updateCoordBox();
+  validateForm();
+}
+
+function updateCoordBox(addr){
+  const box = $('#coordBox');
+  if(!selected){
+    box.className = 'coord-box empty';
+    box.textContent = 'Click on the map to choose the exact spot for your suggested bench.';
+    return;
+  }
+  box.className = 'coord-box';
+  const coords = `${selected.lat.toFixed(5)}, ${selected.lng.toFixed(5)}`;
+  box.innerHTML = `<strong>Selected location</strong><br>${coords}` +
+    `<div class="addr" id="addrLine">${ addr ? '📍 '+esc(addr) : '<em>Looking up nearest address…</em>' }</div>`;
+}
+
+function reverseGeocode(lat, lng){
+  selected && (selected.address = '');
+  clearTimeout(geocodeTimer);
+  geocodeTimer = setTimeout(async ()=>{
+    try{
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=en-GB`;
+      const r = await fetch(url, {headers:{'Accept':'application/json'}});
+      const j = await r.json();
+      const name = j.display_name || '';
+      if(selected){ selected.address = name; }
+      const line = $('#addrLine');
+      if(line){ line.innerHTML = name ? '📍 '+esc(name) : 'Address not found — your map pin is what matters.'; }
+    }catch(e){
+      const line = $('#addrLine');
+      if(line){ line.textContent = 'Address lookup unavailable — your map pin is what matters.'; }
+    }
+  }, 350);
+}
+
+function validateForm(){
+  const reasonOk = $('#reason').value.trim().length >= 5;
+  $('#submitBtn').disabled = !(selected && reasonOk);
+}
+
+async function submitSuggestion(ev){
+  ev.preventDefault();
+  if($('#website').value){ return; }            // honeypot tripped → silently ignore
+  if(!selected){ toast('Please place a pin on the map first.', true); return; }
+  const reason = $('#reason').value.trim();
+  if(reason.length < 5){ toast('Please tell us why this would be a good spot.', true); return; }
+
+  const rec = {
+    id: 'b_' + Date.now() + '_' + Math.floor(Math.random()*1e4),
+    ts: new Date().toISOString(),
+    lat: +selected.lat.toFixed(6),
+    lng: +selected.lng.toFixed(6),
+    address: selected.address || '',
+    description: $('#description').value.trim(),
+    reason: reason
+  };
+
+  const btn = $('#submitBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try{
+    await Store.add(rec);
+    $('#formPanel').style.display = 'none';
+    $('#successPanel').style.display = 'block';
+    clearPin();
+  }catch(e){
+    toast('Sorry, something went wrong. Please try again.', true);
+  }finally{
+    btn.textContent = 'Submit suggestion';
+    validateForm();
+  }
+}
+
+function resetForPublic(){
+  $('#benchForm').reset();
+  $('#reasonCount').textContent = '0 / 600';
+  $('#successPanel').style.display = 'none';
+  $('#formPanel').style.display = 'block';
+  clearPin();
+}
+
+function wirePublic(){
+  $('#benchForm').addEventListener('submit', submitSuggestion);
+  $('#reason').addEventListener('input', (e)=>{
+    $('#reasonCount').textContent = e.target.value.length + ' / 600';
+    validateForm();
+  });
+  $('#clearPinBtn').addEventListener('click', clearPin);
+  $('#againBtn').addEventListener('click', resetForPublic);
+  $('#locateBtn').addEventListener('click', ()=>{
+    if(!navigator.geolocation){ toast('Location is not available on this device.', true); return; }
+    toast('Finding your location…');
+    navigator.geolocation.getCurrentPosition(
+      (pos)=>{
+        const {latitude, longitude} = pos.coords;
+        const ll = L.latLng(latitude, longitude);
+        if(!L.latLngBounds(CONFIG.maxBounds).contains(ll)){
+          toast('You appear to be outside Highworth — please click the spot on the map instead.', true);
+          return;
+        }
+        pubMap.setView(ll, 18);
+        placePin(latitude, longitude);
+      },
+      ()=> toast('Could not get your location — please click the map instead.', true),
+      {enableHighAccuracy:true, timeout:8000}
+    );
+  });
+}
+
+/* ===================================================================
+   ADMIN VIEW
+   =================================================================== */
+let adminMap, adminMarkers = [], adminData = [], sortDir = -1;
+
+function showView(){
+  const admin = location.hash.toLowerCase() === '#admin';
+  $('#adminView').style.display = admin ? 'block' : 'none';
+  $('#publicView').style.display = admin ? 'none' : 'block';
+  if(admin){
+    if(sessionStorage.getItem('htc_admin_ok') === '1'){ openDashboard(); }
+    else { $('#adminGate').style.display='flex'; $('#adminDash').style.display='none'; setTimeout(()=>$('#adminPwd').focus(),100); }
+  } else {
+    initPublicMap();
+  }
+}
+
+async function tryUnlock(ev){
+  ev.preventDefault();
+  const entered = $('#adminPwd').value;
+  const hash = await sha256Hex(entered);
+  if(hash === CONFIG.adminPasswordHash){
+    sessionStorage.setItem('htc_admin_ok','1');
+    $('#adminErr').textContent='';
+    $('#adminPwd').value='';
+    openDashboard();
+  }else{
+    $('#adminErr').textContent = 'Incorrect password. Please try again.';
+    $('#adminPwd').select();
+  }
+}
+
+function initAdminMap(){
+  if(adminMap) return;
+  adminMap = L.map('adminMap', { center: CONFIG.townCentre, zoom: CONFIG.defaultZoom, minZoom: CONFIG.minZoom });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(adminMap);
+}
+
+function openDashboard(){
+  $('#adminGate').style.display='none';
+  $('#adminDash').style.display='block';
+  const badge = $('#modeBadge');
+  if(Store.central()){ badge.textContent='CENTRAL (Google Sheet)'; badge.className='badge central'; }
+  else { badge.textContent='THIS DEVICE ONLY'; badge.className='badge local'; }
+  // delete-all only makes sense for local data on this device
+  $('#clearBtn').style.display = Store.central() ? 'none' : 'inline-flex';
+  initAdminMap();
+  setTimeout(()=>adminMap.invalidateSize(), 150);
+  loadAdmin();
+}
+
+async function loadAdmin(){
+  const {records, source} = await Store.all();
+  adminData = records.slice();
+  const warn = $('#warnBanner');
+  if(source === 'central-fallback'){
+    warn.style.display='block';
+    warn.textContent='⚠ Could not reach the central Google Sheet. Showing suggestions saved on this device only. Check your internet connection and the endpoint URL, then press Refresh.';
+  } else { warn.style.display='none'; }
+  renderAdmin();
+}
+
+function sortData(){
+  adminData.sort((a,b)=>{
+    const av = new Date(a.ts).getTime()||0, bv = new Date(b.ts).getTime()||0;
+    return (av - bv) * sortDir;
+  });
+}
+
+function renderAdmin(){
+  sortData();
+  const body = $('#subsBody');
+  body.innerHTML = '';
+  // clear map markers
+  adminMarkers.forEach(m=>adminMap.removeLayer(m));
+  adminMarkers = [];
+
+  $('#countPill').textContent = adminData.length + (adminData.length===1?' suggestion':' suggestions');
+  $('#emptyNote').style.display = adminData.length ? 'none' : 'block';
+
+  const group = [];
+  adminData.forEach((r, i)=>{
+    const n = i + 1;
+    const lat = parseFloat(r.lat), lng = parseFloat(r.lng);
+    const when = r.ts ? new Date(r.ts).toLocaleString('en-GB') : '';
+    const loc = r.address ? r.address : (isFinite(lat)? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '');
+    const desc = r.description ? `<br><em>${esc(r.description)}</em>` : '';
+
+    // table row
+    const tr = document.createElement('tr');
+    tr.dataset.id = r.id;
+    tr.innerHTML =
+      `<td>${n}</td>`+
+      `<td>${esc(when)}</td>`+
+      `<td>${esc(loc)}${desc}<br><a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">View on map ↗</a></td>`+
+      `<td class="reason">${esc(r.reason)}</td>`+
+      `<td>${ Store.central() ? '' : `<button class="btn btn-danger" data-del="${esc(r.id)}" style="padding:5px 9px;font-size:.8rem;">Delete</button>` }</td>`;
+    body.appendChild(tr);
+
+    // map marker
+    if(isFinite(lat) && isFinite(lng)){
+      const m = L.marker([lat,lng], {icon:pinIcon(String(n))}).addTo(adminMap);
+      m.bindPopup(`<strong>#${n}</strong> — ${esc(when)}<br>${esc(r.reason)}`);
+      adminMarkers.push(m);
+      group.push([lat,lng]);
+      tr.addEventListener('click', (e)=>{
+        if(e.target.dataset.del) return;
+        adminMap.setView([lat,lng], 18);
+        m.openPopup();
+        document.querySelectorAll('table.subs tbody tr').forEach(x=>x.classList.remove('active'));
+        tr.classList.add('active');
+      });
+    }
+  });
+
+  if(group.length){ try{ adminMap.fitBounds(group, {padding:[40,40], maxZoom:17}); }catch(e){} }
+
+  // wire delete buttons (local mode)
+  body.querySelectorAll('button[data-del]').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(confirm('Delete this suggestion from this device? This cannot be undone.')){
+        Store.removeLocal(b.dataset.del);
+        loadAdmin();
+        toast('Suggestion deleted.');
+      }
+    });
+  });
+}
+
+/* ---------- exports ---------- */
+function exportColumns(){
+  return ['ID','Date / time','Latitude','Longitude','Nearest address','Description','Reason','Google Maps link'];
+}
+function recordRow(r){
+  const lat = parseFloat(r.lat), lng = parseFloat(r.lng);
+  return [
+    r.id||'',
+    r.ts ? new Date(r.ts).toLocaleString('en-GB') : '',
+    isFinite(lat)? lat : '',
+    isFinite(lng)? lng : '',
+    r.address||'',
+    r.description||'',
+    r.reason||'',
+    (isFinite(lat)&&isFinite(lng)) ? `https://www.google.com/maps?q=${lat},${lng}` : ''
+  ];
+}
+function fileStamp(){
+  const d = new Date();
+  const p = (n)=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 500);
+}
+
+function csvCell(v){
+  const s = String(v==null?'':v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+function buildCSV(records){
+  const lines = [ exportColumns().map(csvCell).join(',') ];
+  records.forEach(r=> lines.push(recordRow(r).map(csvCell).join(',')) );
+  return lines.join('\r\n');
+}
+function exportCSV(){
+  if(!adminData.length){ toast('There are no suggestions to export yet.', true); return; }
+  const csv = '﻿' + buildCSV(adminData);          // BOM so Excel reads UTF-8
+  downloadBlob(new Blob([csv], {type:'text/csv;charset=utf-8;'}),
+               `highworth-bench-suggestions-${fileStamp()}.csv`);
+  toast('CSV downloaded.');
+}
+
+function loadSheetJS(){
+  return new Promise((resolve, reject)=>{
+    if(window.XLSX) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = ()=>resolve();
+    s.onerror = ()=>reject(new Error('no-cdn'));
+    document.body.appendChild(s);
+  });
+}
+async function exportXLSX(){
+  if(!adminData.length){ toast('There are no suggestions to export yet.', true); return; }
+  try{
+    await loadSheetJS();
+    const aoa = [ exportColumns(), ...adminData.map(recordRow) ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:24},{wch:20},{wch:11},{wch:11},{wch:42},{wch:26},{wch:50},{wch:38}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bench suggestions');
+    XLSX.writeFile(wb, `highworth-bench-suggestions-${fileStamp()}.xlsx`);
+    toast('Excel file downloaded.');
+  }catch(e){
+    // offline fallback: HTML-table .xls (opens in Excel)
+    const head = '<tr>' + exportColumns().map(c=>`<th>${esc(c)}</th>`).join('') + '</tr>';
+    const rows = adminData.map(r=> '<tr>' + recordRow(r).map(c=>`<td>${esc(c)}</td>`).join('') + '</tr>').join('');
+    const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head>`+
+                 `<body><table border="1">${head}${rows}</table></body></html>`;
+    downloadBlob(new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8;'}),
+                 `highworth-bench-suggestions-${fileStamp()}.xls`);
+    toast('Excel file downloaded (offline format).');
+  }
+}
+
+function wireAdmin(){
+  $('#gateForm').addEventListener('submit', tryUnlock);
+  $('#lockBtn').addEventListener('click', ()=>{
+    sessionStorage.removeItem('htc_admin_ok');
+    location.hash = '';
+  });
+  $('#refreshBtn').addEventListener('click', ()=>{ loadAdmin(); toast('Refreshed.'); });
+  $('#exportCsvBtn').addEventListener('click', exportCSV);
+  $('#exportXlsxBtn').addEventListener('click', exportXLSX);
+  $('#clearBtn').addEventListener('click', ()=>{
+    if(!adminData.length){ toast('Nothing to delete.', true); return; }
+    if(confirm('Delete ALL suggestions saved on this device? This cannot be undone.\n\nTip: export them first if you may need them.')){
+      Store.clearLocal(); loadAdmin(); toast('All local suggestions deleted.');
+    }
+  });
+  // sortable date column
+  document.querySelector('th[data-sort="ts"]').addEventListener('click', (e)=>{
+    sortDir *= -1;
+    e.currentTarget.textContent = 'Date / time ' + (sortDir===-1?'▾':'▴');
+    renderAdmin();
+  });
+}
+
+/* ===================================================================
+   Boot
+   =================================================================== */
+window.addEventListener('DOMContentLoaded', ()=>{
+  wirePublic();
+  wireAdmin();
+  showView();
+  window.addEventListener('hashchange', showView);
+});
+</script>
+</body>
+</html>
